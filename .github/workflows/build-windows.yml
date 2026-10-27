@@ -1,0 +1,38 @@
+name: Build Windows installer
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r backend/requirements.txt pyinstaller
+      - name: Build UI
+        working-directory: frontend
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+      - name: Freeze backend
+        run: python desktop/build_backend.py
+      - name: Stage UI
+        run: xcopy /e /i /y frontend\dist desktop\stage\ui
+        shell: cmd
+      - name: Electron installer
+        working-directory: desktop
+        run: |
+          npm install --no-audit --no-fund
+          npx electron-builder --win nsis
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ResearchFinder-Windows-Installer
+          path: desktop/dist/*.exe

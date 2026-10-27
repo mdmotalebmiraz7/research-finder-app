@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+venv/
+.venv/
+node_modules/
+__pycache__/
+.git/
+build-venv/
+desktop/node_modules/
+desktop/stage/
+desktop/dist/
+desktop/pyi-work/
+frontend/dist/
